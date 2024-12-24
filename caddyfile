@@ -1,0 +1,5 @@
+:3055 {
+    root * D:\gpgweb
+    file_server
+    reverse_proxy /generate-key localhost:3050
+}
