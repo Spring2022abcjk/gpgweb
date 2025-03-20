@@ -9,10 +9,10 @@ app = Flask(__name__)
 CORS(app)
 
 # 生成密钥对（公钥和私钥）
-def generate_key():
+def generate_key(key_size):
     key = rsa.generate_private_key(
         public_exponent=65537,
-        key_size=2048,
+        key_size=key_size,
         backend=default_backend()
     )
     private_pem = key.private_bytes(
@@ -30,7 +30,9 @@ def generate_key():
 # 生成密钥对并返回给前端
 @app.route('/generate-key', methods=['POST'])
 def generate_key_route():
-    private_pem, public_key = generate_key()
+    data = request.get_json()
+    key_size = int(data.get('keyCode', 2048))  # 默认值为2048
+    private_pem, public_key = generate_key(key_size)
     response = {
         'privateKey': private_pem.decode('utf-8'),
         'publicKey': public_key.decode('utf-8')

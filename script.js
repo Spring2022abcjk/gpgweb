@@ -20,7 +20,7 @@ form.addEventListener('submit', (e) => {
         },
         body: JSON.stringify({
             keyType,
-            keyCode
+            keyCode: parseInt(keyCode) // 确保 keyCode 作为整数传递
         })
     })
     .then((response) => response.json())
