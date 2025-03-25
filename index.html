@@ -33,6 +33,19 @@
     </form>
 
     <script src="script.js"></script>
+    <script>
+        function adjustInputWidth(input) {
+            input.style.width = ((input.value.length + 1) * 8) + 'px';
+        }
+
+        document.getElementById('public-key').addEventListener('input', function() {
+            adjustInputWidth(this);
+        });
+
+        document.getElementById('private-key').addEventListener('input', function() {
+            adjustInputWidth(this);
+        });
+    </script>
 </body>
 
 </html>

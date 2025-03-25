@@ -58,6 +58,14 @@ body {
     overflow-y: auto;
   }
   
+  input[type="text"] {
+    width: auto;
+    padding: 10px;
+    border: 1px solid #ccc;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+  
   button#generate-key {
     background-color: #4CAF50;
     color: #fff;
