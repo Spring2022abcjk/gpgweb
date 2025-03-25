@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="cn">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>在线生成GPG密钥</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+
+<body>
+    <h1>在线生成GPG密钥</h1>
+    <form id="key-form">
+        <label for="key-type">选择密钥类型：</label>
+        <select id="key-type">
+            <option value="rsa">RSA</option>
+            <option value="ecdsa">ECDSA</option>
+        </select>
+        <br><br>
+        <label for="key-size">选择密钥长度：</label>
+        <select id="key-size">
+            <option value="1024">1024位</option>
+            <option value="2048">2048位</option>
+            <option value="4096">4096位</option>
+        </select>
+        <br><br>
+        <label for="public-key-format">选择公钥格式：</label>
+        <select id="public-key-format">
+            <option value="openssh">OpenSSH</option>
+            <option value="pem">PEM</option>
+        </select>
+        <br><br>
+        <button id="generate-key">生成密钥</button>
+        <div class="key_container">
+            <label>公钥:</label>
+            <textarea id="public-key" title="公钥" readonly></textarea>
+            <label>私钥:</label>
+            <textarea id="private-key" title="私钥" readonly></textarea>
+        </div>
+    </form>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+    <script>
+        // 自动调整文本框高度以适应内容
+        function autoResizeTextarea(textarea) {
+            // 重置高度，以便从新计算
+            textarea.style.height = 'auto';
+            // 设置新高度 = 滚动高度 + 边距
+            textarea.style.height = (textarea.scrollHeight) + 'px';
+        }
+
+        // 初始化事件监听
+        document.addEventListener('DOMContentLoaded', function() {
+            const publicKey = document.getElementById('public-key');
+            const privateKey = document.getElementById('private-key');
+            
+            // 监听文本变化以调整高度
+            publicKey.addEventListener('input', function() {
+                autoResizeTextarea(this);
+            });
+            
+            privateKey.addEventListener('input', function() {
+                autoResizeTextarea(this);
+            });
+            
+            // 监听生成密钥按钮的点击事件
+            document.getElementById('generate-key').addEventListener('click', function() {
+                // 在密钥生成后调用高度调整
+                setTimeout(function() {
+                    autoResizeTextarea(publicKey);
+                    autoResizeTextarea(privateKey);
+                }, 100); // 短暂延时确保内容已更新
+            });
+        });
+    </script>
+</body>
+
+</html>
