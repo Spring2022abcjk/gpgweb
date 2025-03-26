@@ -19,7 +19,7 @@ gpgweb
 
 1. **克隆仓库**：
    ```
-   git clone <repository-url>
+   git clone [<repository-url>](https://github.com/Spring2022abcjk/gpgweb.git)
    cd gpgweb
    ```
 
