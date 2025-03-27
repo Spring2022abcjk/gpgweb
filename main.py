@@ -5,6 +5,7 @@ from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import rsa, ec
 from cryptography.hazmat.backends import default_backend
 import sys
+from key_format import format_public_key, convert_public_key
 
 app = Flask(__name__, static_folder='static', template_folder='templates')
 CORS(app)
@@ -13,75 +14,39 @@ CORS(app)
 def generate_key(key_size: int, key_type: str = 'rsa') -> tuple:
     """
     生成密钥对（公钥和私钥）
-
+# 
     参数:
     key_size (int): 密钥大小
     key_type (str): 密钥类型（'rsa' 或 'ecdsa'）
 
     返回:
-    tuple: 私钥和公钥
+    tuple: 密钥对象、私钥PEM和公钥（格式取决于密钥类型）
     """
     if key_type == 'rsa':
         # 生成RSA私钥
         key = rsa.generate_private_key(
-            public_exponent=65537,  # 公共指数，通常使用65537
-            key_size=key_size,  # 密钥大小（以位为单位，例如2048或4096）
-            backend=default_backend()  # 使用默认的加密后端
-        )
-        
-        # 将私钥序列化为PEM格式
-        private_pem = key.private_bytes(
-            encoding=serialization.Encoding.PEM,  # 编码格式为PEM
-            format=serialization.PrivateFormat.TraditionalOpenSSL,  # 私钥格式为传统的OpenSSL格式
-            encryption_algorithm=serialization.NoEncryption()  # 不加密私钥
-        )
-
-        # 将公钥序列化为OpenSSH格式
-        public_key = key.public_key().public_bytes(
-            encoding=serialization.Encoding.OpenSSH,  # 编码格式为OpenSSH
-            format=serialization.PublicFormat.OpenSSH  # 公钥格式为OpenSSH
+            public_exponent=65537,
+            key_size=key_size,
+            backend=default_backend()
         )
     elif key_type == 'ecdsa':
         # 生成ECDSA私钥
         key = ec.generate_private_key(
-            curve=ec.SECP256R1(),  # 使用SECP256R1曲线
-            backend=default_backend()  # 使用默认的加密后端
-        )
-        
-        # 将私钥序列化为PEM格式
-        private_pem = key.private_bytes(
-            encoding=serialization.Encoding.PEM,  # 编码格式为PEM
-            format=serialization.PrivateFormat.TraditionalOpenSSL,  # 私钥格式为传统的OpenSSL格式
-            encryption_algorithm=serialization.NoEncryption()  # 不加密私钥
-        )
-
-        # 将公钥序列化为PEM格式
-        public_key = key.public_key().public_bytes(
-            encoding=serialization.Encoding.PEM,  # 编码格式为PEM
-            format=serialization.PublicFormat.SubjectPublicKeyInfo  # 公钥格式为SubjectPublicKeyInfo
+            curve=ec.SECP256R1(),
+            backend=default_backend()
         )
     else:
         raise ValueError("Unsupported key type. Use 'rsa' or 'ecdsa'.")
     
-    # 返回私钥和公钥的字节串
-    return key, private_pem, public_key
-
-def convert_public_key_to_pem(public_key: bytes) -> bytes:
-    """
-    将公钥转换为PEM格式
-
-    参数:
-    public_key (bytes): 公钥的字节串
-
-    返回:
-    bytes: PEM格式的公钥
-    """
-    key = serialization.load_ssh_public_key(public_key, backend=default_backend())
-    pem = key.public_bytes(
+    # 将私钥序列化为PEM格式
+    private_pem = key.private_bytes(
         encoding=serialization.Encoding.PEM,
-        format=serialization.PublicFormat.SubjectPublicKeyInfo
+        format=serialization.PrivateFormat.TraditionalOpenSSL,
+        encryption_algorithm=serialization.NoEncryption()
     )
-    return pem
+    
+    # 返回密钥对象、私钥和默认公钥（不处理格式转换）
+    return key, private_pem
 
 # 生成密钥对并返回给前端
 @app.route('/generate-key', methods=['POST'])
@@ -93,13 +58,15 @@ def generate_key_route():
     Response: JSON格式的私钥和公钥
     """
     data = request.get_json()
-    key_size = int(data.get('keyCode', 2048))  # 默认值为2048
-    key_type = data.get('keyType', 'rsa')  # 默认值为'rsa'
-    key, private_pem, public_key = generate_key(key_size, key_type)
-    
+    key_size = int(data.get('keyCode', 2048))
+    key_type = data.get('keyType', 'rsa')
     public_key_format = data.get('publicKeyFormat', 'openssh')
-    if public_key_format == 'pem':
-        public_key = convert_public_key_to_pem(public_key)
+    
+    # 生成密钥对
+    key, private_pem = generate_key(key_size, key_type)
+    
+    # 根据请求的格式生成公钥
+    public_key = format_public_key(key, public_key_format)
     
     response = {
         'privateKey': private_pem.decode('utf-8'),
